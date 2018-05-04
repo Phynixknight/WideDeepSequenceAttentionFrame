@@ -40,6 +40,8 @@ class Hive:
 
         pandas_df = df.toPandas()
 
+        print pandas_df.head()
+
         return pandas_df
 
     def __del__(self):
