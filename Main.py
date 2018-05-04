@@ -28,10 +28,13 @@ cf = ConfigParser.ConfigParser()
 cf.read("Main.conf")
 
 from Hive_Interaction import Hive
+import pandas as pd
 hive = Hive()
 table = {'fields': cf.get('table','train_set_fields'),'name':cf.get('table','train_set_table')}
 logging.info('get %s from %s' % (table['fields'],table['name']))
 pandas_df = hive.Get_Pandas_From_Table(table,date_time)
+logging.info(pandas_df.info())
+logging.info(pandas_df.describe())
 
 from DeepAndWideModel import model_wide_deep
 inputs_wide = {'feature_demo':[0,0,1,1,0,0,0,1,0,1],'length':10,'name':'wide_input','wide_output_dim':32,'l1':1e-4,'l2':1e-4}

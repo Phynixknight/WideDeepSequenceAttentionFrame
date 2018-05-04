@@ -9,6 +9,7 @@ set_session(tf.Session(config=config))
 
 from keras.layers import Input, Dense, TimeDistributed, Embedding, concatenate, LSTM, Permute, Bidirectional, RepeatVector, Reshape, merge, Lambda
 from keras.models import Model
+from keras import backend as K
 from keras.regularizers import l1_l2
 from utils import f1_score,precision_score,recall_score
 
@@ -22,9 +23,12 @@ model = model_wide_deep(inputs_wide,inputs_deepX,input_deep1,input_deep2)
 
 inputs_deeps
 [
-    {'feature_demo(not necessary)':list,'length':len(list),'name':'str','embedding_out_dim':int,'embedding_in_dim':vacab_size},
+    {'feature_demo(not necessary)':list,'length':len(list),'name':'str','embedding_out_dim':int,'embedding_in_dim':vacab_size,'type':'deep'},
     ...,
-    {'feature_demo(not necessary)':list,'length':len(list),'name':'str','embedding_out_dim':int,'embedding_in_dim':vacab_size}
+    {'feature_demo(not necessary)':list,'length':len(list),'name':'str','embedding_out_dim':int,'embedding_in_dim':vacab_size, 'type':'deep'},
+    {'feature_demo(not necessary)':list,'length':len(list),'name':'str','embedding_out_dim':int,'embedding_in_dim':vacab_size,'type':'sequence'},
+    ...,
+    {'feature_demo(not necessary)':list,'length':len(list),'name':'str','embedding_out_dim':int,'embedding_in_dim':vacab_size, 'type':'sequence'},
 ]
 '''
 

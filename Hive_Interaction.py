@@ -4,7 +4,6 @@
 # reload(sys)
 # sys.setdefaultencoding('utf-8')
 
-
 from pyspark.sql import SparkSession
 from pyspark import SparkConf
 
@@ -29,10 +28,10 @@ class Hive:
         print "[INFO] Data Time：",date_time
 
         sql = '''
-            select 
+            select
                 %s
-            from  
-                %s 
+            from
+                %s
             where created_date='%s'
             limit 100
             ''' % (table['fields'],table['name'],date_time)
