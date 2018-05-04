@@ -8,7 +8,7 @@ logging.info("localtime : %s" % (localtime))
 
 date_time = time.strftime("%Y-%m-%d", time.localtime(time.time() - 24*60*60))
 week_day = time.strftime("%w", time.localtime())
-logging.info("data time init to : %s , week day is %s" % (date_time, week_day))
+logging.info("data time init to: %s , week day is %s" % (date_time, week_day))
 
 import sys
 if len(sys.argv) > 1:
@@ -18,7 +18,7 @@ if len(sys.argv) > 1:
 # change execute directory to the Main.py dir
 import os
 os.chdir(os.path.split(os.path.realpath('__file__'))[0])
-logging.info('current directory：%s'%(os.getcwd()))
+logging.info('current directory: %s'%(os.getcwd()))
 
 if not os.path.isdir('./model'):
     logging.info('check or create model directory')
