@@ -36,6 +36,8 @@ class Hive:
                 where created_date='%s'
             ''' % (table['fields'],table['name'],date_time)
 
+        print sql
+
         df = self.spark.sql(sql)
 
         pandas_df = df.toPandas()
