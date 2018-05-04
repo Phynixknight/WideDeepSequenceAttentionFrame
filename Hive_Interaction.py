@@ -15,7 +15,7 @@ class Hive:
     def __init__(self):
         self.spark = SparkSession \
             .builder \
-            .appName("anti_spam_spark_u_p_predict_%s" % (date_time)) \
+            .appName("gaishi_deep_and_wide_frame") \
             .enableHiveSupport() \
             .config("spark.rpc.message.maxSize", "60") \
             .config("spark.files.overwrite", "true") \
