@@ -1,8 +1,8 @@
 #coding: utf-8
 
-import sys
-reload(sys)
-sys.setdefaultencoding('utf-8')
+# import sys
+# reload(sys)
+# sys.setdefaultencoding('utf-8')
 
 
 from pyspark.sql import SparkSession
@@ -33,7 +33,8 @@ class Hive:
                 %s
             from  
                 %s 
-                where created_date='%s'
+            where created_date='%s'
+            limit 100
             ''' % (table['fields'],table['name'],date_time)
 
         print sql

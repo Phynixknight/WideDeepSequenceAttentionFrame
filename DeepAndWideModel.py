@@ -13,49 +13,25 @@ from keras import backend as K
 from keras.regularizers import l1_l2
 
 def recall_score(y_true, y_pred):
-    """
-    计算batch 召回率
-    :param y_true:
-    :param y_pred:
-    :return:
-    """
     c1 = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
     c2 = K.sum(K.round(K.clip(y_pred, 0, 1)))
     c3 = K.sum(K.round(K.clip(y_true, 0, 1)))
-    if c3 == 0:
-        return 0
-    return c1 / c3
+    return 0 if c3 == 0 else c1/c3
 
 def precision_score(y_true, y_pred):
-    """
-    计算batch 精准度
-    :param y_true:
-    :param y_pred:
-    :return:
-    """
     c1 = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
     c2 = K.sum(K.round(K.clip(y_pred, 0, 1)))
     c3 = K.sum(K.round(K.clip(y_true, 0, 1)))
-    if c3 == 0:
-        return 0
-    return c1 / c2
+    return 0 if c3 == 0 else c1/c2
 
 def f1_score(y_true, y_pred):
-    """
-    计算batch F1得分
-    :param y_true:
-    :param y_pred:
-    :return:
-    """
     c1 = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
     c2 = K.sum(K.round(K.clip(y_pred, 0, 1)))
     c3 = K.sum(K.round(K.clip(y_true, 0, 1)))
-    if c3 == 0:
-        return 0
     precision = c1 / c2
-    recall = c1 / c3
+    recall = 0 if c3 == 0 else c1 / c3
     f1_score = 2 * (precision * recall) / (precision + recall)
-    return f1_score
+    return 0 if c3 ==0 else f1_score
 
 '''
 example:
