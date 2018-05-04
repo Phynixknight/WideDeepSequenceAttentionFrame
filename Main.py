@@ -25,6 +25,7 @@ if not os.path.isdir('./model'):
     os.mkdir('model')
 
 cf = ConfigParser.ConfigParser()
+cf.read("Main.conf")
 
 from Hive_Interaction import Hive
 hive = Hive()
