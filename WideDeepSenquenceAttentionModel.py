@@ -17,8 +17,11 @@ from utils import f1_score,precision_score,recall_score
 example:
 inputs_wide = {'feature_demo':[0,0,1,1,0,0,0,1,0,1],'length':10,'name':'wide_input','wide_output_dim':32,'l1':1e-4,'l2':1e-4}
 inputs_deepX = {'deep_hidden_dim':128,'deep_output_dim':32}
+inputs_sequenceX = {'sequence_out_dim':32}
 input_deep1={'feature_demo':[0,0,1,3,7,11,2,10,6],'length':9,'name':'shop_id_type','embedding_out_dim':16,'embedding_in_dim':20}
 input_deep2={'feature_demo':[3],'length':1,'name':'user_type','embedding_out_dim':8,'embedding_in_dim':10}
+input_sequence1={'feature_demo':[1,2,0,1,4,3,0,2,0],'length':10,'name':'time_diff','embedding_out_dim':16,'embedding_in_dim':60}
+input_sequence2={'feature_demo':[1,3,4,5,7,9,13,17,23],'length':10,'name':'url_seq','embedding_out_dim':16,'embedding_in_dim':60}
 model = model_wide_deep(inputs_wide,inputs_deepX,input_deep1,input_deep2)
 
 inputs_deeps
@@ -41,19 +44,55 @@ def model_wide_deep(inputs_wide,inputs_deepX,*inputs_deeps):
     inputs_deep = []
     embedding_deep = []
     lambda_deep = []
-    for input_deep_dict in inputs_deeps:
-        inputs_deep.append(Input(shape=(input_deep_dict["length"],), name=input_deep_dict["name"],dtype='float32'))
-        embedding_deep.append(Embedding(embeddings_initializer='uniform',output_dim=input_deep_dict["embedding_out_dim"], input_dim=input_deep_dict["embedding_in_dim"], input_length=input_deep_dict["length"], mask_zero=True, name='embedding_'+input_deep_dict["name"])(inputs_deep[-1]))
-        lambda_deep.append(Lambda(function=lambda x: K.reshape(x, shape=(-1, input_deep_dict["length"] * input_deep_dict["embedding_out_dim"])))(embedding_deep[-1]))
 
+    #sequence
+    inputs_sequence=[]
+    time_step = 0
+
+    for input_deep_dict in inputs_deeps:
+        #deep
+        if input_deep_dict['type'] == 'deep':
+            inputs_deep.append(Input(shape=(input_deep_dict["length"],), name=input_deep_dict["name"],dtype='float32'))
+            embedding_deep.append(Embedding(embeddings_initializer='uniform',output_dim=input_deep_dict["embedding_out_dim"], input_dim=input_deep_dict["embedding_in_dim"], input_length=input_deep_dict["length"], mask_zero=True, name='embedding_'+input_deep_dict["name"])(inputs_deep[-1]))
+            lambda_deep.append(Lambda(function=lambda x: K.reshape(x, shape=(-1, input_deep_dict["length"] * input_deep_dict["embedding_out_dim"])))(embedding_deep[-1]))
+        #sequence
+        elif input_deep_dict['type'] == 'sequence':
+            time_step = input_deep_dict['length']
+            inputs_sequence.append(Input(shape=(input_deep_dict['length'],),name=input_deep_dict['name'],dtype='int32'))
+            embedding_sequence = Embedding(input_deep_dict['embedding_out_dim'],input_dim=input_deep_dict['embedding_in_dim'],input_length=input_deep_dict['length'],mask_zero=True)(inputs_sequence[-1])
+
+    #sequence and attention
+    input_sequence = concatenate(inputs=inputs_sequence,axis=2)
+    bilstm = Bidirectional(LSTM(inputs_sequenceX['sequence_out_dim']))(input_sequence)
+
+    #attention after lstm
+    attention_input_dim = bilstm.shape[2]
+    permute = Permute((2,1))(bilstm)
+    reshape = Reshape((attention_input_dim,time_step))(permute)
+    dense_attention = Dense(time_step,activation='softmax')(reshape)
+
+    # single_attention_vector
+    lambda_attention = Lambda(lambda x: K.mean(x, axis=1), name='dim_reduction')(dense_attention)
+    repeat = RepeatVector(attention_input_dim)(lambda_attention)
+
+    # attention_probs
+    attention_probs = Permute((2,1),name='attention_vecor')(repeat)
+    attention_mul = merge([bilstm, attention_probs], name='attention_mul', mode='mul')
+
+    # attention output
+    output_attention = Flatten()(attention_mul)
+
+    #deep output
     inputs_deep_model = concatenate(inputs = lambda_deep,axis=-1)
     output_deep_hidden = Dense(inputs_deepX['deep_hidden_dim'],activation='relu')(inputs_deep_model)
     output_deep = Dense(inputs_deepX['deep_output_dim'],activation='relu')(output_deep_hidden)
 
     #wide and deep
-    input_wide_deep = concatenate(inputs=[output_wide,output_deep],axis=1)
+    input_wide_deep = concatenate(inputs=[output_wide,output_deep,output_attention],axis=1)
     output_wide_deep = Dense(1, activation='sigmoid', name="output_wide_deep")(input_wide_deep)
-    model_wide_deep = Model(inputs=[input_wide] + inputs_deep, outputs=[output_wide_deep])
+
+    #all model
+    model_wide_deep = Model(inputs=[input_wide] + inputs_deep + inputs_sequence, outputs=[output_wide_deep])
     model_wide_deep.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', f1_score, precision_score, recall_score])#
     model_wide_deep.summary()
     return model_wide_deep
