@@ -16,8 +16,7 @@ Include:
 ## Attention Mechanism 
 **simplest attention in Dense**  
 ![](model_attention.png)  
-**simplest multi attention in lstm**  
-i.e. single attention vector is flase   
+**simplest multi attention in lstm**     
 Attention defined per time series (each TS has its own attention)  
 ![](graph_multi_attention.png)  
 **Attention shared across all the time series**  
