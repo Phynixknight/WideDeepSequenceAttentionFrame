@@ -22,6 +22,10 @@ Attention defined per time series (each TS has its own attention)
 **Attention shared across all the time series**  
 ![](graph_single_attention.png)  
 
+**disadvantage**   
+Those method cannot support masking in embedding.    
+So I use TimeDistribution instead, there's some diffrents accordingly.  
+
 ## Wide And Deep & Sequence & Attention
 **example for two deep branch and three sequence branch**  
 ![](model_wide_deep_sequence_attention.png)
