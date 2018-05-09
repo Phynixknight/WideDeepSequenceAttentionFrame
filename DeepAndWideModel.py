@@ -1,12 +1,3 @@
-import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "3"
-
-import tensorflow as tf
-from keras.backend.tensorflow_backend import set_session
-config = tf.ConfigProto()
-config.gpu_options.per_process_gpu_memory_fraction = 0.3
-set_session(tf.Session(config=config))
-
 from keras.layers import Input, Dense, TimeDistributed, Embedding, concatenate, LSTM, Permute, Bidirectional, RepeatVector, Reshape, merge, Lambda
 from keras.models import Model
 from keras.regularizers import l1_l2
