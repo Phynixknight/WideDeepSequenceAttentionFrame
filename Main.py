@@ -43,7 +43,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = cf.get('GPU', 'CUDA_VISIBLE_DEVICES')
 import tensorflow as tf
 from keras.backend.tensorflow_backend import set_session
 config = tf.ConfigProto()
-config.gpu_options.per_process_gpu_memory_fraction = cf.get('GPU', 'per_process_gpu_memory_fraction')
+config.gpu_options.per_process_gpu_memory_fraction = float(cf.get('GPU', 'per_process_gpu_memory_fraction'))
 set_session(tf.Session(config=config))
 
 from DeepAndWideModel import model_wide_deep
