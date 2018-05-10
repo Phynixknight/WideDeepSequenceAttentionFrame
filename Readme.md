@@ -20,10 +20,15 @@ Include:
 
 **simplest multi attention in lstm**     
 Attention defined per time series (each TS has its own attention)  
-![](graph_multi_attention.png)  
-![](model_wide_deep_sequence_nonmask_attention.png)  
+Theory Graph  
+![Theory Graph](graph_multi_attention.png)  
+Code Graph  
+![Code Graph](model_attention.png)   
+Application Graph  
+![Application Graph](model_wide_deep_sequence_nonmask_attention.png)  
 
 **Attention shared across all the time series**  
+Theory Graph
 ![](graph_single_attention.png)  
 
 **disadvantage**   
