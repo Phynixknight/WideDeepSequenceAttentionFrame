@@ -54,7 +54,7 @@ input_deep2={'feature_demo':[3],'length':1,'name':'user_type','embedding_out_dim
 model = model_wide_deep(inputs_wide,inputs_deepX,input_deep1,input_deep2)
 logging.info(model.summary())
 
-from WideDeepSenquenceAttentionModel import model_wide_deep
+from WideDeepSenquenceAttentionMaskingModel import model_wide_deep
 inputs_wide = {'feature_demo':[0,0,1,1,0,0,0,1,0,1],'length':10,'name':'wide_input','wide_output_dim':32,'l1':1e-4,'l2':1e-4}
 inputs_deepX = {'deep_hidden_dim':128,'deep_output_dim':32}
 inputs_sequenceX = {'sequence_out_dim':32}
