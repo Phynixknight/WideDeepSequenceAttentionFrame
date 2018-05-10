@@ -19,6 +19,7 @@ Include:
 **simplest multi attention in lstm**     
 Attention defined per time series (each TS has its own attention)  
 ![](graph_multi_attention.png)  
+![](model_wide_deep_sequence_nonmask_attention.png)  
 **Attention shared across all the time series**  
 ![](graph_single_attention.png)  
 
