@@ -13,7 +13,9 @@ Include:
 **example for two deep branch**   
 ![](model_wide_and_deep.png)  
 
-## Attention Mechanism 
+## Attention Mechanism  
+
+Attention can be happened befor or after rnn，there we use attention after lstm  
 
 **simplest attention in Dense**  
 ![](model_attention.png)  
@@ -28,12 +30,14 @@ Application Graph
 ![Application Graph](model_wide_deep_sequence_nonmask_attention.png)  
 
 **Attention shared across all the time series**  
-Theory Graph
+Theory Graph  
 ![](graph_single_attention.png)  
 
 **disadvantage**   
-Those method cannot support masking in embedding.    
-So I use TimeDistribution instead, there's some diffrents accordingly.  
+Those method cannot support masking in embedding.     
+So I use TimeDistribution instead, there's some diffrents accordingly.   
+TimeDistributino ≈ Permute([2,1]) + Dense(1,softmax) + Permute([2,1])   
+So it need Repeate to Reshape to the shape of lstm  
 
 ## Wide And Deep & Sequence & Attention
 **example for two deep branch and three sequence branch**  
