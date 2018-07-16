@@ -51,8 +51,10 @@ def bucket_boundes_exp(ndarray_like,min_pos,max_exp,strategy,nd_type):
         # '+' by default
         op = min_pos.__add__
 
+    pow_list = [pow(2,i) for i in range(max_exp + 1)]
+
     for i in range(max_exp):
-        ndarray_like[np.where(np.logical_and(np.greater_equal(ndarray_like,op(pow(2,i))),np.less(ndarray_like,op(pow(2,i+1)))))] = min_pos+i
+        ndarray_like[np.where(np.logical_and(np.greater_equal(ndarray_like,op(pow_list[i])),np.less(ndarray_like,op(pow_list[i+1]))))] = min_pos+i
 
     if nd_type=='1d':
         return set(ndarray_like)
