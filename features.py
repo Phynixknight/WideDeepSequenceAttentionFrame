@@ -1,15 +1,15 @@
+# -*- coding: utf-8 -*-
+# @Time    : 2018-01-01 00:00:00
+# @Author  : gaishi
+
 import numpy as np
+import operator
 
 def encode_list(feature_list):
     return dict(zip(feature_list,range(1,len(feature_list)+1)))
 
-def encode_bucket_1darray(feature_1darray,base_value,max_bucket_index):
-    '''太大的值进行log压缩'''
-    for i in range(0,max_bucket_index):
-        feature_1darray[np.where(np.logical_and(np.greater_equal(feature_1darray,base_value*pow(2,i)),np.less(feature_1darray,base_value *pow(2,i+1))))] = base_value+i
-
 def encode_bucket_list(feature_list, bucket):
-    
+    pass
 
 def onehot_encode_bucket_value(value, bucket):
     '''buckets is sorted ascending'''
@@ -61,3 +61,161 @@ def bucket_boundes_exp(ndarray_like,min_pos,max_exp,strategy,nd_type):
     else:
         # '2d' by default
         return set([x for y in ndarray_like for x in y])
+
+
+# bucket as exponent boundaries
+#     the boundaries of bucket is [min_pos,int1,int2,...,max_pos]
+#     must ensure the max ndarray_like is less than max_pos value
+# example:
+#     boundaries of bucket is [10,20,30,40,50,60,70]
+#     the bucket will [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]
+def bucket_boundes_has_min(ndarray_like,boundaries,nd_type):
+    min_pos = boundaries[0]
+
+    for i in range(len(boundaries) - 1):
+        ndarray_like[np.where(np.logical_and(np.greater_equal(ndarray_like,boundaries[i]),np.less(ndarray_like,boundaries[i+1])))] = min_pos+i
+
+    if nd_type=='1d':
+        return set(ndarray_like)
+    else:
+        # '2d' by default
+        return set([x for y in ndarray_like for x in y])
+
+# bucket as exponent boundaries
+#     the boundaries of bucket is [0,upbounds_of_zero_bucket,int1,int2,...,max_pos]
+#     must ensure the max ndarray_like is less than max_pos value
+# example:
+#     boundaries of bucket is [0,1,10,20,30,40,50,60,70]
+#     the bucket will [0,1,2,3,4,5,6,7]
+#     0:[0,1),1:[1,10),2:[10,20),3:[20,30),4:[30,40),5:[40,50),6:[50,60),7:[60:70)
+def bucket_boundes(ndarray_like,boundaries):
+    min_pos = boundaries[0]
+
+    for i in range(len(boundaries) - 1):
+        ndarray_like[np.where(np.logical_and(np.greater_equal(ndarray_like,boundaries[i]),np.less(ndarray_like,boundaries[i+1])))] = min_pos+i
+
+# encode 2darray to one_hot
+# return new one_hot 2darray features
+# for example:
+# array[[0, 0, 3],
+#       [1, 1, 0],
+#       [0, 2, 1],
+#       [1, 0, 2]]
+# dim : 3
+# n_values: [2, 3, 4]
+# for dim 0:
+#            0:[0,1],1:[1,0]
+# for dim 1:
+#            0:[0,0,1],1:[0,1,0],2:[1,0,0]
+# for dim 2:
+#            0:[0,0,0,1],1:[0,0,1,0],2:[0,1,0,0],3:[1,0,0,0]
+# return:
+#        array([[ 1.,  0.,      1.,  0.,  0.,      0.,  0.,  0.,  1.],
+#               [ 0.,  1.,      0.,  1.,  0.,      1.,  0.,  0.,  0.],
+#               [ 1.,  0.,      0.,  0.,  1.,      0.,  1.,  0.,  0.],
+#               [ 0.,  1.,      1.,  0.,  0.,      0.,  0.,  1.,  0.]])
+def encode_one_hot(ndarray_like):
+    N = len(ndarray_like)
+    dim = len(ndarray_like[0])
+    diff_values = [set([]) for i in range(dim)]
+    n_values = [0 for i in range(dim)]
+    dic = [{} for i in range(dim)]
+    for i in range(dim):
+        diff_values[i] = set(ndarray_like[:,i])
+        n_values[i] = len(diff_values[i])
+        dic[i] = dict(zip(diff_values[i],range(n_values[i])))
+        offset = sum(n_values[:i])
+        for k in dic[i]: dic[i][k] = dic[i][k] + offset
+    encode_ndarray = np.zeros(shape=(N,sum(n_values)))
+    for n in range(N):
+        for i in range(dim):
+            encode_ndarray[n][dic[i][ndarray_like[n][i]]] = 1
+    return encode_ndarray
+
+
+# encode 2-column 2darray to multi_hot
+# return new one_hot 2darray features and dict
+# input dim must be 2
+# n_values : different dim featrues number
+# output dim will be n_values[0] * n_values[1] ,even not all will access
+# example 1:
+# array[[0, 0],
+#       [1, 1],
+#       [0, 2],
+#       [1, 0]]
+# dim : 2
+# n_values: [2, 3]
+# out_dim : 2 * 3 = 6
+#         no matter whether all this six can be accessable
+# all the dict:
+#            0,0:[1,0,0,0,0,0];
+#            0,1:[0,1,0,0,0,0];
+#            0,2:[0,0,1,0,0,0];
+#            1,0:[0,0,0,1,0,0];
+#            1,1:[0,0,0,0,1,0];
+#            1,2:[0,0,0,0,0,1];
+# for this example:
+#       (0,1);(1,2) is not accessable, but we also encode it
+#       for the reason that we assume all independent feature will access all
+#              ,but 2-gram can be missing in train_set/valid_set
+# return:
+#        array([[1,0,0,0,0,0],
+#               [0,0,0,0,1,0],
+#               [0,0,1,0,0,0],
+#               [0,0,0,1,0,0]])
+# example 2:
+#     np.array([['a', 'a'], ['b','e'], ['c','d']]
+# return:
+#     array([[ 1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+#            [ 0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.],
+#            [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.]])
+def encode_bi_multi_hot(ndarray_like):
+    N = len(ndarray_like)
+    dim = len(ndarray_like[0])
+    assert dim == 2
+    diff_values = [set([]) for i in range(dim)]
+    n_values = [0 for i in range(dim)]
+    dic = [{} for i in range(dim)]
+    for i in range(dim):
+        diff_values[i] = set(ndarray_like[:,i])
+        n_values[i] = len(diff_values[i])
+        dic[i] = dict(zip(diff_values[i],range(n_values[i])))
+    encode_ndarray = np.zeros(shape=(N,reduce(operator.mul,n_values)))
+    for n in range(N):
+        encode_ndarray[n][dic[0][ndarray_like[n][0]] + dic[1][ndarray_like[n][1]] * n_values[0]] = 1
+    return encode_ndarray
+
+# encode n-column 2darray to multi_hot
+# return new one_hot 2darray features and dict
+# n_values : different dim featrues number
+# output dim will be n_values[0] * n_values[1] ,even not all will access
+# for example:
+# np.array([['a', 'a','x'], ['b','e','e'], ['c','d','y']]
+# dim : 3
+# n_values: [3, 3, 3]
+# out_dim : 3 * 3 * 3 = 27
+#         no matter whether all this six can be accessable
+# return:
+#        array([[ 1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
+#                0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0., 0.],
+#               [ 0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
+#                0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0., 0.],
+#               [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.,
+#                0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0., 0.]])
+def encode_n_multi_hot(ndarray_like):
+    N = len(ndarray_like)
+    dim = len(ndarray_like[0])
+    diff_values = [set([]) for i in range(dim)]
+    n_values = [0 for i in range(dim)]
+    dic = [{} for i in range(dim)]
+    for i in range(dim):
+        diff_values[i] = set(ndarray_like[:,i])
+        n_values[i] = len(diff_values[i])
+        dic[i] = dict(zip(diff_values[i],range(n_values[i])))
+    encode_ndarray = np.zeros(shape=(N,reduce(operator.mul,n_values)))
+    for n in range(N):
+        pos = 0
+        for i in range(dim):
+            pos += dic[i][ndarray_like[n][i]] * sum(n_values[0:i])
+        encode_ndarray[n][dic[0][ndarray_like[n][0]] + dic[1][ndarray_like[n][1]] * n_values[0]] = 1
+    return encode_ndarray
