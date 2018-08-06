@@ -11,27 +11,27 @@ Include:
 
 ## Wide And Deep Model:  
 **example for two deep branch**   
-![](model_wide_and_deep.png)  
+![](pic/model_wide_and_deep.png)  
 
 ## Attention Mechanism  
 
 Attention can be happened befor or after rnn，there we use attention after lstm  
 
 **simplest attention in Dense**  
-![](model_attention.png)  
+![](pic/model_attention.png)  
 
 **simplest multi attention in lstm**     
 Attention defined per time series (each TS has its own attention)  
 Theory Graph  
-![Theory Graph](graph_multi_attention.png)  
+![Theory Graph](pic/graph_multi_attention.png)  
 Code Graph  
-![Code Graph](model_attention.png)   
+![Code Graph](pic/model_attention.png)   
 Application Graph  
-![Application Graph](model_wide_deep_sequence_nonmask_attention.png)  
+![Application Graph](pic/model_wide_deep_sequence_nonmask_attention.png)  
 
 **Attention shared across all the time series**  
 Theory Graph  
-![](graph_single_attention.png)  
+![](pic/graph_single_attention.png)  
 
 **disadvantage**   
 Those method cannot support masking in embedding.     
@@ -41,4 +41,4 @@ So it need Repeate to Reshape to the shape of lstm
 
 ## Wide And Deep & Sequence & Attention
 **example for two deep branch and three sequence branch**  
-![](model_wide_deep_sequence_attention.png)
+![](pic/model_wide_deep_sequence_attention.png)

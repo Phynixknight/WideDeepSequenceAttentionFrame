@@ -7,14 +7,22 @@
 from pyspark.sql import SparkSession
 from pyspark import SparkConf
 
+# from pyspark import SparkContext
+# from pyspark.sql import HiveContext
+
+# .config("spark.storage.memoryFraction", "0.5") \
+# .config("spark.memory.storageFraction","0.5")\
+# .config("spark.memory.fraction","32000") \
+#.config("spark.files.overwrite", "true") \
+
 import pandas as pd
 
 class Hive:
 
-    def __init__(self):
+    def __init__(self,app_name):
         self.spark = SparkSession \
             .builder \
-            .appName("gaishi_deep_and_wide_frame") \
+            .appName(app_name) \
             .enableHiveSupport() \
             .config("spark.rpc.message.maxSize", "60") \
             .config("spark.files.overwrite", "true") \
@@ -24,7 +32,7 @@ class Hive:
             .config("fs.defaultFS", "hdfs://mgjcluster") \
             .getOrCreate()
 
-    def Get_Pandas_From_Table(self,table,date_time):
+    def Get_Pandas_From_Table(self,table,date_time,limit):
         print "[INFO] Data Time：",date_time
 
         sql = '''
@@ -34,7 +42,7 @@ class Hive:
                 %s
             where created_date='%s'
             limit 100
-            ''' % (table['fields'],table['name'],date_time)
+            ''' % (table['fields'],table['name'],date_time,limit)
 
         print sql
 

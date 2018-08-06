@@ -3,6 +3,7 @@
 # @Author  : gaishi
 
 import numpy as np
+import pandas as pd
 import operator
 
 def encode_list(feature_list):
@@ -23,10 +24,15 @@ def encode_cross(feature_list_A,feature_list_B):
 
 # the method suit for the array that some maximum value is unnormal but common,
 #       the tail numberic will be bucket as exponent
-# input the nd_array ,change to the bucket 1d_array, the opration will in-place, and return the bucket_dict
+# input the nd_array ,change to the bucket 1d_array, the opration will in-place, and return the result and bucket_dict
 # warning:
 #       for the predict set, if you can not ensure every value will appear at least onces
 #       you must bucket the feature as the same way but filter with the bucket_dict
+#
+#       [notice] the fuction change the value in place, but
+#       if the real parameter is pandas_DataFrame,note that pd.iloc[] is a copy of orign,
+#           ,it happened implicit, so I return the ndarray_like.
+#       otherwise if the type of ndarray_like is np.ndarray, ndarray_like is itself, you can omit the first return value.
 # input:
 #     ndarray_like:1d_array like object
 #               like pandas Series/DataFrame and numpy 1darray/ndarray
@@ -45,6 +51,13 @@ def encode_cross(feature_list_A,feature_list_B):
 #     if min_position = 10、strategy is ‘+’，then the boundaries of bucket is [10,10+0,10+2,10+4,10+8,10+16,10+32,...]
 #     if min_position = 10、strategy is ‘*’，then the boundaries of bucket is [10,10*1,10*2,10*4,10*8,10*16,10*32,...]
 def bucket_boundes_exp(ndarray_like,min_pos,max_exp,strategy,nd_type):
+    if isinstance(ndarray_like,pd.core.frame.DataFrame) or isinstance(ndarray_like,pd.core.frame.Series):
+        ndarray_like = ndarray_like.values
+        # there's different between pandas dataframe and numpy.ndarray indexer[] in resolving tuple list like index
+        # like np_array_like[(array([1,2,3,4]),array([0,0,0,0]))]
+        # in pandas iloc can resolve the second list as columns, but like [1,[0,0,0,0]], and numpy treate it as a column [1,0] [2,0]
+
+
     if strategy == '*':
         op = min_pos.__mul__
     else:
@@ -57,10 +70,10 @@ def bucket_boundes_exp(ndarray_like,min_pos,max_exp,strategy,nd_type):
         ndarray_like[np.where(np.logical_and(np.greater_equal(ndarray_like,op(pow_list[i])),np.less(ndarray_like,op(pow_list[i+1]))))] = min_pos+i
 
     if nd_type=='1d':
-        return set(ndarray_like)
+        return ndarray_like,set(ndarray_like)
     else:
         # '2d' by default
-        return set([x for y in ndarray_like for x in y])
+        return ndarray_like,set([x for y in ndarray_like for x in y])
 
 
 # bucket as exponent boundaries
@@ -69,17 +82,28 @@ def bucket_boundes_exp(ndarray_like,min_pos,max_exp,strategy,nd_type):
 # example:
 #     boundaries of bucket is [10,20,30,40,50,60,70]
 #     the bucket will [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]
+#
+# notice: the fuction change the value in place, but
+#       if the real parameter is pandas_DataFrame,note that pd.iloc[] is a copy of orign,
+#           ,it happened implicit, so I return the ndarray_like.
+#       otherwise if the type of ndarray_like is np.ndarray, ndarray_like is itself, you can omit the first return value.
 def bucket_boundes_has_min(ndarray_like,boundaries,nd_type):
+    if isinstance(ndarray_like,pd.core.frame.DataFrame) or isinstance(ndarray_like,pd.core.frame.Series):
+        ndarray_like = ndarray_like.values
+    # there's different between pandas dataframe and numpy.ndarray indexer[] in resolving tuple list like index
+    # like df[(array([1,2,3,4]),array([0,0,0,0]))]
+    # pandas resolve the second list as columns like [1,[0,0,0,0]], but numpy treate it as a column [1,0] [2,0], neighter of iloc and loc
+
     min_pos = boundaries[0]
 
     for i in range(len(boundaries) - 1):
         ndarray_like[np.where(np.logical_and(np.greater_equal(ndarray_like,boundaries[i]),np.less(ndarray_like,boundaries[i+1])))] = min_pos+i
 
     if nd_type=='1d':
-        return set(ndarray_like)
+        return ndarray_like,set(ndarray_like)
     else:
         # '2d' by default
-        return set([x for y in ndarray_like for x in y])
+        return ndarray_like,set([x for y in ndarray_like for x in y])
 
 # bucket as exponent boundaries
 #     the boundaries of bucket is [0,upbounds_of_zero_bucket,int1,int2,...,max_pos]
@@ -88,11 +112,24 @@ def bucket_boundes_has_min(ndarray_like,boundaries,nd_type):
 #     boundaries of bucket is [0,1,10,20,30,40,50,60,70]
 #     the bucket will [0,1,2,3,4,5,6,7]
 #     0:[0,1),1:[1,10),2:[10,20),3:[20,30),4:[30,40),5:[40,50),6:[50,60),7:[60:70)
+# notice: the fuction change the value in place, but
+#       if the real parameter is pandas_DataFrame,note that pd.iloc[] is a copy of orign,
+#           ,it happened implicit, so I return the ndarray_like.
+#       but you can also use the pd['colums_name'] method, it will return a Series reference in the Frame.
+#       otherwise if the type of ndarray_like is np.ndarray, ndarray_like is itself, you can omit the first return value.
 def bucket_boundes(ndarray_like,boundaries):
+    if isinstance(ndarray_like,pd.core.frame.DataFrame) or isinstance(ndarray_like,pd.core.frame.Series):
+        ndarray_like = ndarray_like.values
+        # there's different between pandas dataframe and numpy.ndarray indexer[] in resolving tuple list like index
+        # like df[(array([1,2,3,4]),array([0,0,0,0]))]
+        # pandas resolve the second list as columns like [1,[0,0,0,0]], but numpy treate it as a column [1,0] [2,0]
+
     min_pos = boundaries[0]
 
     for i in range(len(boundaries) - 1):
         ndarray_like[np.where(np.logical_and(np.greater_equal(ndarray_like,boundaries[i]),np.less(ndarray_like,boundaries[i+1])))] = min_pos+i
+
+    return ndarray_like
 
 # encode 2darray to one_hot
 # return new one_hot 2darray features
