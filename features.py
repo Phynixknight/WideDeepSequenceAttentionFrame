@@ -151,6 +151,11 @@ def bucket_boundes(ndarray_like,boundaries):
 #               [ 0.,  1.,      0.,  1.,  0.,      1.,  0.,  0.,  0.],
 #               [ 1.,  0.,      0.,  0.,  1.,      0.,  1.,  0.,  0.],
 #               [ 0.,  1.,      1.,  0.,  0.,      0.,  0.,  1.,  0.]])
+#        dict[
+#           {0:8,1:7}
+#           {0:6,1:5,2:4}
+#           {0:3,1:2,2:1,3:0}
+#           ]
 def encode_one_hot(ndarray_like):
     if isinstance(ndarray_like,pd.core.frame.DataFrame) or isinstance(ndarray_like,pd.core.frame.Series):
         ndarray_like = ndarray_like.values
@@ -169,8 +174,42 @@ def encode_one_hot(ndarray_like):
     for n in range(N):
         for i in range(dim):
             encode_ndarray[n][dic[i][ndarray_like[n][i]]] = 1
-    return encode_ndarray
+    return encode_ndarray,dic
 
+
+# encode 2darray to one_hot
+# return new one_hot 2darray features
+# for example:
+# array[[0, 0, 3],
+#       [1, 1, 0],
+#       [0, 2, 1],
+#       [1, 0, 2]]
+# dim : 3
+# n_values: [2, 3, 4]
+# for dim 0:
+#            0:[0,1],1:[1,0]
+# for dim 1:
+#            0:[0,0,1],1:[0,1,0],2:[1,0,0]
+# for dim 2:
+#            0:[0,0,0,1],1:[0,0,1,0],2:[0,1,0,0],3:[1,0,0,0]
+# return:
+#        array([[ 1.,  0.,      1.,  0.,  0.,      0.,  0.,  0.,  1.],
+#               [ 0.,  1.,      0.,  1.,  0.,      1.,  0.,  0.,  0.],
+#               [ 1.,  0.,      0.,  0.,  1.,      0.,  1.,  0.,  0.],
+#               [ 0.,  1.,      1.,  0.,  0.,      0.,  0.,  1.,  0.]])
+def encode_one_hot_usingdict(ndarray_like,dic):
+    if isinstance(ndarray_like,pd.core.frame.DataFrame) or isinstance(ndarray_like,pd.core.frame.Series):
+        ndarray_like = ndarray_like.values
+    N = len(ndarray_like)
+    dim = len(ndarray_like[0])
+    dim_encode = sum([len(dic[i]) for i in range(len(dic))])
+
+    encode_ndarray = np.zeros(shape=(N,dim_encode))
+    for n in range(N):
+        for i in range(dim):
+            if dic[i].has_key(ndarray_like[n][i]):
+                encode_ndarray[n][dic[i][ndarray_like[n][i]]] = 1
+    return encode_ndarray
 
 # encode 2-column 2darray to multi_hot
 # return new one_hot 2darray features and dict
@@ -280,6 +319,20 @@ def deep_featrue(pandas_df,expose_bucket_boundaries,columns):
     for colum in columns:
         bucket_boundes(pandas_df[colum], expose_bucket_boundaries)
 
-def wide_features(pandas_df, columns):
-    features = encode_one_hot(pandas_df[columns])
+def wide_features(pandas_df, columns, dic_name):
+    features,dic = encode_one_hot(pandas_df[columns])
+
+    import pickle
+    with open(dic_name, 'wb') as file:
+        pickle.dump(dic,file)
+
+    return features
+
+def wide_features_dict(pandas_df, columns, dic_name):
+    import pickle
+    with open(dic_name, 'rb') as file:
+        dic =pickle.load(file)
+
+    features = encode_one_hot_usingdict(pandas_df[columns],dic)
+
     return features

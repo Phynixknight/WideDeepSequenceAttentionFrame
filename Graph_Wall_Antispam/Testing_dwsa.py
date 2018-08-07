@@ -19,7 +19,7 @@ table = { 'type' : 'PN'
     , 'N_pos': 50000
     , 'N_neg': 50000
     , 'start_column': 2
-    , 'end_column': -1}
+    , 'end_column': -1 }
 
 hive = Hive(app_name)
 
@@ -28,7 +28,7 @@ X_train,y_train = hive.get_data_from_hive(table,data_time)
 # Step2 data_process
 
 from features import deep_features
-from features import wide_features
+from features import wide_features_dict
 from DeepAndWideModel import model_wide_deep
 
 expose_bucket_boundaries = [0,1,10,100,200,300,400,500,600,700,800,900,1500,3000,5000,10000,1000000]
@@ -79,7 +79,7 @@ expose_biz_deep_featrue \
 
 wide_columns = ['mogujie_order','meilishuo_order','weixin_qq_order','order_zb_kq_mf'
     ,'diff_platform','diff_valid_device','diff_device','diff_valid_ip','diff_ip']
-wide_feature = wide_features(X_train,wide_columns)
+wide_feature = wide_features_dict(X_train,wide_columns, 'one_hot.dic')
 
 inputs_wide = {'feature': wide_feature,'length':len(wide_feature[0]),'name':'wide_input','wide_output_dim':32,'l1':1e-4,'l2':1e-4}
 inputs_deepX = {'deep_hidden_dim':128,'deep_output_dim':32}

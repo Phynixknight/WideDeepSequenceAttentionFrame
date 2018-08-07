@@ -98,7 +98,7 @@ expose_biz_deep_featrue\
 
 wide_columns = ['mogujie_order','meilishuo_order','weixin_qq_order','order_zb_kq_mf'
     ,'diff_platform','diff_valid_device','diff_device','diff_valid_ip','diff_ip']
-wide_feature = wide_features(X_train,wide_columns)
+wide_feature = wide_features(X_train, wide_columns, 'one_hot.dic')
 
 inputs_wide = {'feature': wide_feature,'length':len(wide_feature[0]),'name':'wide_input','wide_output_dim':32,'l1':1e-4,'l2':1e-4}
 inputs_deepX = {'deep_hidden_dim':128,'deep_output_dim':32}
