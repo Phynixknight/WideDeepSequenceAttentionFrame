@@ -24,17 +24,31 @@
         # 加购
         # 喜欢
 
-from Step1_data_obtain import get_data_from_hive
-from Step2_data_process import deep_features
-from Step2_data_process import wide_features
-from DeepAndWideModel import model_wide_deep
+from Hive_Interaction import Hive
 
-data_time='2018-07-04'
-N = 100
-table_name = 'gaishi_nrt_u_f_ytd_trainset'
-start_column = 2
-end_column = -1
-X_train,y_train,X_test,y_test = get_data_from_hive(data_time,N,table_name,start_column,end_column)
+# Step1 get data from hive
+
+app_name = 'Graph_Wall_Antispam_Train'
+data_time = '2018-07-04'
+
+table = { 'type' : 'PN'
+        , 'fields':'*'
+        , 'label_name': 'cheat'
+        , 'name':'gaishi_nrt_u_f_ytd_trainset'
+        , 'N_pos': 50000
+        , 'N_neg': 100000
+        , 'start_column': 2
+        , 'end_column': -1}
+
+hive = Hive(app_name)
+
+X_train,y_train = hive.get_data_from_hive(table,data_time)
+
+# Step2 data_process
+
+from features import deep_features
+from features import wide_features
+from DeepAndWideModel import model_wide_deep
 
 expose_bucket_boundaries = [0,1,10,100,200,300,400,500,600,700,800,900,1500,3000,5000,10000,1000000]
 deep_columns = [['expose_ad', 'expose_natrual_ad','expose_non_ad','expose_live','expose_topic'
@@ -86,14 +100,6 @@ wide_columns = ['mogujie_order','meilishuo_order','weixin_qq_order','order_zb_kq
     ,'diff_platform','diff_valid_device','diff_device','diff_valid_ip','diff_ip']
 wide_feature = wide_features(X_train,wide_columns)
 
-'''
-inputs_wide = {'feature_demo':[0,0,1,1,0,0,0,1,0,1],'length':10,'name':'wide_input','wide_output_dim':32,'l1':1e-4,'l2':1e-4}
-inputs_deepX = {'deep_hidden_dim':128,'deep_output_dim':32}
-input_deep1={'feature_demo':[0,0,1,3,7,11,2,10,6],'length':9,'name':'shop_id_type','embedding_out_dim':16,'embedding_in_dim':20}
-input_deep2={'feature_demo':[3],'length':1,'name':'user_type','embedding_out_dim':8,'embedding_in_dim':10}
-model = model_wide_deep(inputs_wide,inputs_deepX,input_deep1,input_deep2)
-'''
-
 inputs_wide = {'feature': wide_feature,'length':len(wide_feature[0]),'name':'wide_input','wide_output_dim':32,'l1':1e-4,'l2':1e-4}
 inputs_deepX = {'deep_hidden_dim':128,'deep_output_dim':32}
 input_deep1={'feature': expose_biz_deep_featrue,'length':expose_biz_deep_featrue.columns.size,'name':'expose_biz_deep_featrue','embedding_out_dim':16,'embedding_in_dim':20}
@@ -106,6 +112,9 @@ input_deep7={'feature': page_nonlogin_deep_feature,'length':page_nonlogin_deep_f
 input_deep8={'feature': event_login_deep_feature,'length':event_login_deep_feature.columns.size,'name':'event_login_deep_feature','embedding_out_dim':16,'embedding_in_dim':20}
 input_deep9={'feature': event_nonlogin_deep_feature,'length':event_nonlogin_deep_feature.columns.size,'name':'event_nonlogin_deep_feature','embedding_out_dim':16,'embedding_in_dim':20}
 input_deep10={'feature':diff_deep_featrue,'length':diff_deep_featrue.columns.size,'name':'diff_deep_featrue','embedding_out_dim':8,'embedding_in_dim':10}
+
+
+# Step3 training
 
 x = {
     inputs_wide['name']: inputs_wide['feature'],
@@ -123,7 +132,7 @@ x = {
 
 
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "3"
+os.environ["CUDA_VISIBLE_DEVICES"] = "3"  # set before tensorflow
 
 import tensorflow as tf
 from keras.backend.tensorflow_backend import set_session
@@ -138,7 +147,12 @@ from keras.regularizers import l1_l2
 
 model = model_wide_deep(inputs_wide,inputs_deepX,input_deep1,input_deep2,input_deep3,input_deep4,input_deep5,input_deep6,input_deep7,input_deep8,input_deep9)
 
-model.fit(x, y_train, epochs=1, batch_size=64, validation_split=0.1)
+model.fit(x, y_train, epochs=8, batch_size=128, validation_split=0.1)
+
+model.save_weights('antispam_graph_wall_weights.h5')
+
+model.save('antispam_graph_wall.h5') # maybe error
+##TypeError: ('Not JSON Serializable:',user_active_e_cnt_nonlogin  active_nonvalid_uuid_e_cnt_nonlogin ...)
 
 # out = model.predict(x, batch_size=1024, verbose=1)
 

@@ -27,7 +27,7 @@ inputs_deeps
 ]
 '''
 
-def model_wide_deep(inputs_wide,inputs_deepX,inputs_sequenceX,*inputs_deeps):
+def model_wide_deep_attention_nonmask(inputs_wide,inputs_deepX,inputs_sequenceX,*inputs_deeps):
     #wide model
     input_wide = Input(shape=(inputs_wide['length'],), name=inputs_wide['name'],dtype='float32')
     output_wide = Dense(units=inputs_wide['wide_output_dim'], activation="relu",kernel_regularizer=l1_l2(l1=1e-4,l2=1e-4))(input_wide)
