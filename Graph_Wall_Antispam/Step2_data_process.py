@@ -30,6 +30,6 @@ def deep_featrue(pandas_df,expose_bucket_boundaries,columns):
         bucket_boundes(pandas_df[colum], expose_bucket_boundaries)
 
 def wide_features(pandas_df, columns):
-    features = encode_one_hot(pandas_df[[columns]])
+    features = encode_one_hot(pandas_df[columns])
     return features
 

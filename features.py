@@ -152,6 +152,8 @@ def bucket_boundes(ndarray_like,boundaries):
 #               [ 1.,  0.,      0.,  0.,  1.,      0.,  1.,  0.,  0.],
 #               [ 0.,  1.,      1.,  0.,  0.,      0.,  0.,  1.,  0.]])
 def encode_one_hot(ndarray_like):
+    if isinstance(ndarray_like,pd.core.frame.DataFrame) or isinstance(ndarray_like,pd.core.frame.Series):
+        ndarray_like = ndarray_like.values
     N = len(ndarray_like)
     dim = len(ndarray_like[0])
     diff_values = [set([]) for i in range(dim)]

@@ -84,7 +84,7 @@ expose_biz_deep_featrue\
 
 wide_columns = ['mogujie_order','meilishuo_order','weixin_qq_order','order_zb_kq_mf'
     ,'diff_platform','diff_valid_device','diff_device','diff_valid_ip','diff_ip']
-wide_featrue = wide_features(X_train,wide_columns)
+wide_feature = wide_features(X_train,wide_columns)
 
 '''
 inputs_wide = {'feature_demo':[0,0,1,1,0,0,0,1,0,1],'length':10,'name':'wide_input','wide_output_dim':32,'l1':1e-4,'l2':1e-4}
@@ -94,31 +94,31 @@ input_deep2={'feature_demo':[3],'length':1,'name':'user_type','embedding_out_dim
 model = model_wide_deep(inputs_wide,inputs_deepX,input_deep1,input_deep2)
 '''
 
-inputs_wide = {'feature': wide_featrue,'length':len(wide_featrue),'name':'wide_input','wide_output_dim':32,'l1':1e-4,'l2':1e-4}
+inputs_wide = {'feature': wide_feature,'length':len(wide_feature[0]),'name':'wide_input','wide_output_dim':32,'l1':1e-4,'l2':1e-4}
 inputs_deepX = {'deep_hidden_dim':128,'deep_output_dim':32}
-input_deep1={'feature': expose_biz_deep_featrue,'length':len(expose_biz_deep_featrue),'name':'expose_biz_deep_featrue','embedding_out_dim':16,'embedding_in_dim':20}
-input_deep2={'feature': expose_plat_deep_feature,'length':len(expose_plat_deep_feature),'name':'expose_plat_deep_feature','embedding_out_dim':16,'embedding_in_dim':20}
-input_deep3={'feature': click_deep_feature,'length':len(click_deep_feature),'name':'click_deep_feature','embedding_out_dim':16,'embedding_in_dim':20}
-input_deep4={'feature': cart_deep_feature,'length':len(cart_deep_feature),'name':'cart_deep_feature','embedding_out_dim':16,'embedding_in_dim':20}
-input_deep5={'feature': fav_deep_feature,'length':len(fav_deep_feature),'name':'fav_deep_feature','embedding_out_dim':16,'embedding_in_dim':20}
-input_deep6={'feature': page_login_deep_feature,'length':len(page_login_deep_feature),'name':'page_login_deep_feature','embedding_out_dim':16,'embedding_in_dim':20}
-input_deep7={'feature': page_nonlogin_deep_feature,'length':len(page_nonlogin_deep_feature),'name':'page_nonlogin_deep_feature','embedding_out_dim':16,'embedding_in_dim':20}
-input_deep8={'feature': event_login_deep_feature,'length':len(event_login_deep_feature),'name':'event_login_deep_feature','embedding_out_dim':16,'embedding_in_dim':20}
-input_deep9={'feature': event_nonlogin_deep_feature,'length':len(event_nonlogin_deep_feature),'name':'event_nonlogin_deep_feature','embedding_out_dim':16,'embedding_in_dim':20}
-input_deep10={'feature':diff_deep_featrue,'length':len(diff_deep_featrue),'name':'diff_deep_featrue','embedding_out_dim':8,'embedding_in_dim':10}
+input_deep1={'feature': expose_biz_deep_featrue,'length':expose_biz_deep_featrue.columns.size,'name':'expose_biz_deep_featrue','embedding_out_dim':16,'embedding_in_dim':20}
+input_deep2={'feature': expose_plat_deep_feature,'length':expose_plat_deep_feature.columns.size,'name':'expose_plat_deep_feature','embedding_out_dim':16,'embedding_in_dim':20}
+input_deep3={'feature': click_deep_feature,'length':click_deep_feature.columns.size,'name':'click_deep_feature','embedding_out_dim':16,'embedding_in_dim':20}
+input_deep4={'feature': cart_deep_feature,'length':cart_deep_feature.columns.size,'name':'cart_deep_feature','embedding_out_dim':16,'embedding_in_dim':20}
+input_deep5={'feature': fav_deep_feature,'length':fav_deep_feature.columns.size,'name':'fav_deep_feature','embedding_out_dim':16,'embedding_in_dim':20}
+input_deep6={'feature': page_login_deep_feature,'length':page_login_deep_feature.columns.size,'name':'page_login_deep_feature','embedding_out_dim':16,'embedding_in_dim':20}
+input_deep7={'feature': page_nonlogin_deep_feature,'length':page_nonlogin_deep_feature.columns.size,'name':'page_nonlogin_deep_feature','embedding_out_dim':16,'embedding_in_dim':20}
+input_deep8={'feature': event_login_deep_feature,'length':event_login_deep_feature.columns.size,'name':'event_login_deep_feature','embedding_out_dim':16,'embedding_in_dim':20}
+input_deep9={'feature': event_nonlogin_deep_feature,'length':event_nonlogin_deep_feature.columns.size,'name':'event_nonlogin_deep_feature','embedding_out_dim':16,'embedding_in_dim':20}
+input_deep10={'feature':diff_deep_featrue,'length':diff_deep_featrue.columns.size,'name':'diff_deep_featrue','embedding_out_dim':8,'embedding_in_dim':10}
 
 x = {
     inputs_wide['name']: inputs_wide['feature'],
-    input_deep1['name']: input_deep1['featrue'],
-    input_deep2['name']: input_deep2['featrue'],
-    input_deep3['name']: input_deep3['featrue'],
-    input_deep4['name']: input_deep4['featrue'],
-    input_deep5['name']: input_deep5['featrue'],
-    input_deep6['name']: input_deep6['featrue'],
-    input_deep6['name']: input_deep7['featrue'],
-    input_deep7['name']: input_deep8['featrue'],
-    input_deep8['name']: input_deep9['featrue'],
-    input_deep9['name']: input_deep10['featrue']
+    input_deep1['name']: input_deep1['feature'],
+    input_deep2['name']: input_deep2['feature'],
+    input_deep3['name']: input_deep3['feature'],
+    input_deep4['name']: input_deep4['feature'],
+    input_deep5['name']: input_deep5['feature'],
+    input_deep6['name']: input_deep6['feature'],
+    input_deep7['name']: input_deep7['feature'],
+    input_deep8['name']: input_deep8['feature'],
+    input_deep9['name']: input_deep9['feature'],
+    input_deep10['name']: input_deep10['feature']
 }
 
 
@@ -140,5 +140,5 @@ model = model_wide_deep(inputs_wide,inputs_deepX,input_deep1,input_deep2,input_d
 
 model.fit(x, y_train, epochs=1, batch_size=64, validation_split=0.1)
 
-out = model.predict(x, batch_size=1024, verbose=1)
+# out = model.predict(x, batch_size=1024, verbose=1)
 
