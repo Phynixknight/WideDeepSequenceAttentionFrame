@@ -17,7 +17,7 @@ def onehot_encode_bucket_value(value, bucket):
     feature = np.zeros(len(bucket),dtype=int)
 
 def onehot_cross_encode_list(value1,value2,bucket1,bucket2):
-    feature = np.zeros()
+    pass
 
 def encode_cross(feature_list_A,feature_list_B):
     pass

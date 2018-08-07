@@ -33,8 +33,8 @@ data_time = '2018-07-04'
 
 table = { 'type' : 'PN'
         , 'fields':'*'
-        , 'label_name': 'cheat'
         , 'name':'gaishi_nrt_u_f_ytd_trainset'
+        , 'label_name': 'cheat'
         , 'N_pos': 50000
         , 'N_neg': 100000
         , 'start_column': 2
