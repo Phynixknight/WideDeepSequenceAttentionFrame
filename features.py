@@ -105,7 +105,7 @@ def bucket_boundes_has_min(ndarray_like,boundaries,nd_type):
         # '2d' by default
         return ndarray_like,set([x for y in ndarray_like for x in y])
 
-# bucket as exponent boundaries
+# bucket with boundaries
 #     the boundaries of bucket is [0,upbounds_of_zero_bucket,int1,int2,...,max_pos]
 #     must ensure the max ndarray_like is less than max_pos value
 # example:
