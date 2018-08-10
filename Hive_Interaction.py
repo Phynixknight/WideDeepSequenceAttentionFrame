@@ -46,7 +46,7 @@ class Hive:
             from
                 %s
             where created_date='%s'
-            limit 100
+            limit %d
             ''' % (table_fields, table_name, date_time,limit)
 
         print sql
@@ -93,6 +93,23 @@ class Hive:
         print pandas_df.head()
 
         return pandas_df
+
+    def Get_HDFS_from_Hive(self,table_fields,table_name,date_time):
+        print "[INFO] Data Time：",date_time
+
+        sql = '''
+                select
+                    %s
+                from
+                    %s
+                where created_date='%s'
+                ''' % (table_fields, table_name, date_time)
+
+        print sql
+
+        df = self.spark.sql(sql)
+
+
 
     # table = { 'type' : 'all'
     # , 'fields':'*'
