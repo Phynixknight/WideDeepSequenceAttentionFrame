@@ -1,6 +1,7 @@
-from keras.layers import Input, Dense, TimeDistributed, Embedding, concatenate, LSTM, Permute, Bidirectional, RepeatVector, Reshape, merge, Lambda
+from keras.layers import Input, Dense, Embedding, concatenate, Lambda
 from keras.models import Model
 from keras.regularizers import l1_l2
+from keras import backend as K
 from utils import f1_score,precision_score,recall_score
 
 '''

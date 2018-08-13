@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Time    : 8/13/18 12:00 PM
 # @Author  : gaishi
-# @Site    : 
+# @Site    : https://github.com/Phynixknight/WideDeepSequenceAttentionFrame
 # @File    : WideDeepBiLSTMAttention.py
 # @Software: IntelliJ IDEA
 

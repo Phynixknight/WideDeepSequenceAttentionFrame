@@ -4,7 +4,6 @@ from keras import backend as K
 from keras.regularizers import l1_l2
 from utils import f1_score,precision_score,recall_score
 
-
 '''
 example:
 inputs_wide = {'feature_demo':[0,0,1,1,0,0,0,1,0,1],'length':10,'name':'wide_input','wide_output_dim':32,'l1':1e-4,'l2':1e-4}
