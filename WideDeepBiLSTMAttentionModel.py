@@ -1,15 +1,21 @@
+# -*- coding: utf-8 -*-
+# @Time    : 8/13/18 12:00 PM
+# @Author  : gaishi
+# @Site    : 
+# @File    : WideDeepBiLSTMAttention.py
+# @Software: IntelliJ IDEA
+
 from keras.layers import Input, Dense, TimeDistributed, Embedding, concatenate, LSTM, Permute, Bidirectional, RepeatVector, Reshape, merge, Lambda
 from keras.models import Model
 from keras import backend as K
 from keras.regularizers import l1_l2
 from utils import f1_score,precision_score,recall_score
 
-
 '''
 example:
 inputs_wide = {'feature_demo':[0,0,1,1,0,0,0,1,0,1],'length':10,'name':'wide_input','wide_output_dim':32,'l1':1e-4,'l2':1e-4}
 inputs_deepX = {'deep_hidden_dim':128,'deep_output_dim':32}
-inputs_sequenceX = {'sequence_out_dim':32}
+inputs_sequenceX = {'sequence_out_dim':32,'mask_zero':True}
 input_deep1={'feature_demo':[0,0,1,3,7,11,2,10,6],'length':9,'name':'shop_id_type','embedding_out_dim':16,'embedding_in_dim':20}
 input_deep2={'feature_demo':[3],'length':1,'name':'user_type','embedding_out_dim':8,'embedding_in_dim':10}
 input_sequence1={'feature_demo':[1,2,0,1,4,3,0,2,0],'length':10,'name':'time_diff','embedding_out_dim':16,'embedding_in_dim':60}
@@ -27,7 +33,7 @@ inputs_deeps
 ]
 '''
 
-def model_wide_deep_attention_nonmask(inputs_wide,inputs_deepX,inputs_sequenceX,*inputs_deeps):
+def model_wide_deep_attention_masking(inputs_wide,inputs_deepX,inputs_sequenceX,*inputs_deeps):
     #wide model
     input_wide = Input(shape=(inputs_wide['length'],), name=inputs_wide['name'],dtype='float32')
     output_wide = Dense(units=inputs_wide['wide_output_dim'], activation="relu",kernel_regularizer=l1_l2(l1=1e-4,l2=1e-4))(input_wide)
@@ -54,20 +60,36 @@ def model_wide_deep_attention_nonmask(inputs_wide,inputs_deepX,inputs_sequenceX,
             sequence_num += 0
             sequence_length = input_deep_dict['length']
             inputs_sequence.append(Input(shape=(input_deep_dict['length'],),name=input_deep_dict['name'],dtype='int32'))
-            embedding_sequence.append(Embedding(output_dim=input_deep_dict['embedding_out_dim'],input_dim=input_deep_dict['embedding_in_dim'],input_length=input_deep_dict['length'])(inputs_sequence[-1])) #,mask_zero=True
+            embedding_sequence.append(Embedding(output_dim=input_deep_dict['embedding_out_dim'],input_dim=input_deep_dict['embedding_in_dim'],input_length=input_deep_dict['length'],mask_zero=inputs_sequenceX['mask_zero'])(inputs_sequence[-1]))
 
     #sequence and attention model
     input_sequence = concatenate(inputs=embedding_sequence,axis=2)
     bilstm = Bidirectional(LSTM(inputs_sequenceX['sequence_out_dim'], return_sequences=True,name='output_sequence'))(input_sequence)
 
-    #another method
-    lstm_dim = inputs_sequenceX['sequence_out_dim'] * 2 # bilstm double
-    per_embedding_length = Permute((2, 1),name='permute_embedding_vec_and_length')(bilstm)
-    a = Reshape((lstm_dim, sequence_length))(per_embedding_length) # this line is not useful. It's just to know which dimension is what.
-    attention_weights = Dense(sequence_length, activation='softmax',name='attention_weight')(per_embedding_length)
-    probs_length_embedding = Permute((2, 1), name='attention_vec')(attention_weights)
-    attention_mul = merge([bilstm, probs_length_embedding], name='attention_mul', mode='mul')
+    # masking using TimeDistribute , Nomasking using Permute method
+    if(inputs_sequenceX['mask_zero']):
+        # attention weights
+        attention_implements = TimeDistributed(Dense(1, activation='tanh',name='attention_weights_cal'))(bilstm)
 
+        #TimeDistributedDense layer will produce a 3D tensor shape of (batch_size,L,1), and when you apply the softmax activation, the output maybe not correct.
+        lambda_attention = Lambda(lambda x: x, output_shape=lambda x: x)(attention_implements)
+        reshape_attention = Reshape((sequence_length,))(lambda_attention)
+        dense_attention = Dense(sequence_length, activation='softmax', use_bias=False, name="attetion_weights")(reshape_attention)
+        repeatevector = RepeatVector(2 * inputs_sequenceX['sequence_out_dim'])(dense_attention)
+        attention_probs = Permute([2, 1],name='attention_probs_flatten')(repeatevector)
+
+        # attention = bilstm * attention_probs
+        attention_mul = merge([bilstm, attention_probs], mode="mul")
+    else:
+        #another method
+        lstm_dim = inputs_sequenceX['sequence_out_dim'] * 2 # bilstm double
+        per_embedding_length = Permute((2, 1),name='permute_embedding_vec_and_length')(bilstm)
+        a = Reshape((lstm_dim, sequence_length))(per_embedding_length) # this line is not useful. It's just to know which dimension is what.
+        attention_weights = Dense(sequence_length, activation='softmax',name='attention_weight')(per_embedding_length)
+        probs_length_embedding = Permute((2, 1), name='attention_vec')(attention_weights)
+        attention_mul = merge([bilstm, probs_length_embedding], name='attention_mul', mode='mul')
+
+    # sequence attention output
     output_attention = Lambda(lambda x: K.sum(x, axis=1),name='output_attention')(attention_mul)
 
     #deep model
@@ -75,11 +97,11 @@ def model_wide_deep_attention_nonmask(inputs_wide,inputs_deepX,inputs_sequenceX,
     output_deep_hidden = Dense(inputs_deepX['deep_hidden_dim'],activation='relu')(inputs_deep_model)
     output_deep = Dense(inputs_deepX['deep_output_dim'],activation='relu')(output_deep_hidden)
 
-    #wide and deep
+    #wide and deep and sequence and attention model
     input_wide_deep = concatenate(inputs=[output_wide,output_deep,output_attention],axis=1)
     output_wide_deep = Dense(1, activation='sigmoid', name="output_wide_deep")(input_wide_deep)
 
-    #all model
+    #create model
     model_wide_deep = Model(inputs=[input_wide] + inputs_deep + inputs_sequence, outputs=[output_wide_deep])
     model_wide_deep.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', f1_score, precision_score, recall_score])
     model_wide_deep.summary()

@@ -46,7 +46,7 @@ def model_wide_deep_attention_masking(inputs_wide,inputs_deepX,inputs_sequenceX,
         #deep
         if input_deep_dict['type'] == 'deep':
             inputs_deep.append(Input(shape=(input_deep_dict["length"],), name=input_deep_dict["name"],dtype='float32'))
-            embedding_deep.append(Embedding(embeddings_initializer='uniform',output_dim=input_deep_dict["embedding_out_dim"], input_dim=input_deep_dict["embedding_in_dim"], input_length=input_deep_dict["length"], mask_zero=True, name='embedding_'+input_deep_dict["name"])(inputs_deep[-1]))
+            embedding_deep.append(Embedding(embeddings_initializer='uniform',output_dim=input_deep_dict["embedding_out_dim"], input_dim=input_deep_dict["embedding_in_dim"], input_length=input_deep_dict["length"], mask_zero=False, name='embedding_'+input_deep_dict["name"])(inputs_deep[-1]))
             lambda_deep.append(Lambda(function=lambda x: K.reshape(x, shape=(-1, input_deep_dict["length"] * input_deep_dict["embedding_out_dim"])))(embedding_deep[-1]))
         #sequence
         elif input_deep_dict['type'] == 'sequence':
